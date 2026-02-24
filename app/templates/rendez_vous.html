@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Liste des rendez-vous{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-calendar-check"></i> Rendez-vous</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('appointments.prendre_rdv') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Nouveau RDV
+        </a>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Rechercher patient...">
+    </div>
+    <div class="col-md-2">
+        <input type="date" id="dateDebut" class="form-control" placeholder="Date début">
+    </div>
+    <div class="col-md-2">
+        <input type="date" id="dateFin" class="form-control" placeholder="Date fin">
+    </div>
+    <div class="col-md-2">
+        <select id="statutFilter" class="form-select">
+            <option value="all">Tous statuts</option>
+            <option value="confirme">Confirmé</option>
+            <option value="termine">Terminé</option>
+            <option value="annule">Annulé</option>
+            <option value="absent">Absent</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select id="medecinFilter" class="form-select">
+            <option value="all">Tous médecins</option>
+            {% for m in medecins %}
+                <option value="{{ m.id }}">Dr. {{ m.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<!-- Liste des rendez-vous -->
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Tous les rendez-vous</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Heure</th>
+                        <th>Patient</th>
+                        <th>Médecin</th>
+                        <th>Motif</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="rdvTableBody">
+                    <!-- Données chargées via AJAX -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Navigation">
+            <ul class="pagination justify-content-center" id="pagination"></ul>
+        </nav>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+let currentPerPage = 10;
+let currentSearch = '';
+let currentDateDebut = '';
+let currentDateFin = '';
+let currentStatut = 'all';
+let currentMedecin = 'all';
+
+function loadRendezVous() {
+    const url = new URL('{{ url_for("appointments.api_rendez_vous_liste") }}', window.location.origin);
+    url.searchParams.append('page', currentPage);
+    url.searchParams.append('per_page', currentPerPage);
+    url.searchParams.append('search', currentSearch);
+    url.searchParams.append('date_debut', currentDateDebut);
+    url.searchParams.append('date_fin', currentDateFin);
+    url.searchParams.append('statut', currentStatut);
+    url.searchParams.append('medecin', currentMedecin);
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            displayRendezVous(data.rdvs);
+            setupPagination(data.total, data.pages);
+        });
+}
+
+function displayRendezVous(rdvs) {
+    const tbody = document.getElementById('rdvTableBody');
+    tbody.innerHTML = '';
+    
+    rdvs.forEach(r => {
+        const badgeClass = {
+            'confirme': 'success',
+            'termine': 'primary',
+            'annule': 'danger',
+            'absent': 'warning'
+        }[r.statut] || 'secondary';
+        
+        const row = `
+            <tr>
+                <td>${r.date}</td>
+                <td>${r.heure}</td>
+                <td>${r.patient_nom}</td>
+                <td>Dr. ${r.medecin_nom}</td>
+                <td>${r.motif || '-'}</td>
+                <td><span class="badge bg-${badgeClass}">${r.statut}</span></td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-info" onclick="voirRDV(${r.id})">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
+
+// ... (pagination et événements similaires à la page patients)
+</script>
+{% endblock %}

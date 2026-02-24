@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Dashboard') }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-speedometer2"></i> {{ _('Tableau de bord') }}</h2>
+    </div>
+    {% if current_user.role == 'medecin' %}
+    <div class="col text-end">
+        <a href="{{ url_for('appointments.prendre_rdv') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> {{ _('Nouveau RDV') }}
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- GRAND CHIFFRE : Rendez-vous aujourd'hui -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card text-white bg-primary text-center py-4">
+            <div class="card-body">
+                <h1 class="display-1">{{ total_rdv_aujourdhui }}</h1>
+                <h3>{{ _('Rendez-vous aujourd\'hui') }}</h3>
+                <p class="mb-0">
+                    <span class="badge bg-light text-primary">{{ rdv_aujourdhui|length }} {{ _('confirmés') }}</span>
+                    <span class="badge bg-warning">{{ rdv_annules_aujourdhui }} {{ _('annulés') }}</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques en cartes -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('Patients') }}</h5>
+                <h2>{{ total_patients }}</h2>
+                <small>{{ _('Total patients') }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('RDV ce mois') }}</h5>
+                <h2>{{ total_rdv_mois }}</h2>
+                <small>{{ _('Consultations') }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('RDV annulés') }}</h5>
+                <h2>{{ rdv_annules }}</h2>
+                <small>{{ _('Total annulations') }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('Taux d\'absences') }}</h5>
+                <h2>{{ taux_absence }}%</h2>
+                <small>{{ _('Patients non venus') }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- RDV du jour détaillé -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-calendar-day"></i> {{ _('Rendez-vous du jour') }}</h5>
+                <span class="badge bg-light text-info">{{ rdv_aujourdhui|length }} {{ _('confirmés') }}</span>
+            </div>
+            <div class="card-body">
+                {% if rdv_aujourdhui %}
+                    <div class="list-group">
+                        {% for rdv in rdv_aujourdhui %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ rdv.heure }}</strong> - {{ rdv.patient.nom }}
+                                        {% if rdv.motif %}
+                                            <br><small class="text-muted">{{ rdv.motif }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('admin.creer_prescription', appointment_id=rdv.id) }}" 
+                                           class="btn btn-sm btn-outline-success" title="{{ _('Créer ordonnance') }}">
+                                            <i class="bi bi-file-text"></i>
+                                        </a>
+                                        <a href="{{ url_for('appointments.annuler_rdv', rdv_id=rdv.id) }}" 
+                                           class="btn btn-sm btn-outline-danger" 
+                                           onclick="return confirm('{{ _('Annuler ce rendez-vous ?') }}')">
+                                            <i class="bi bi-x-circle"></i> {{ _('Annuler') }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">{{ _('Aucun rendez-vous aujourd\'hui') }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Prochains RDV -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-calendar-week"></i> {{ _('Prochains rendez-vous') }}</h5>
+            </div>
+            <div class="card-body">
+                {% if prochains_rdv %}
+                    <div class="list-group">
+                        {% for rdv in prochains_rdv %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ rdv.date.strftime('%d/%m/%Y') }} {{ _('à') }} {{ rdv.heure }}</strong>
+                                        <br>{{ rdv.patient.nom }}
+                                        {% if rdv.motif %}
+                                            <br><small class="text-muted">{{ rdv.motif }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{{ url_for('appointments.annuler_rdv', rdv_id=rdv.id) }}" 
+                                       class="btn btn-sm btn-outline-danger" 
+                                       onclick="return confirm('{{ _('Annuler ce rendez-vous ?') }}')">
+                                        <i class="bi bi-x-circle"></i> {{ _('Annuler') }}
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">{{ _('Aucun rendez-vous à venir') }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Petit rappel pour les absents -->
+{% if rdv_absents and rdv_absents > 0 %}
+<div class="alert alert-warning mt-3">
+    <i class="bi bi-exclamation-triangle"></i>
+    <strong>{{ _('Attention :') }}</strong> {{ rdv_absents }} {{ _('patients ne se sont pas présentés à leur rendez-vous.') }}
+    {{ _('Pensez à envoyer des rappels SMS pour réduire les absences.') }}
+</div>
+{% endif %}
+{% endblock %}

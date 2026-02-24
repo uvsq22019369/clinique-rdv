@@ -1,0 +1,59 @@
+{% extends "base_public.html" %}
+
+{% block title %}Annuler mon rendez-vous{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-white">
+                <h4 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Annulation de rendez-vous</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">Vous êtes sur le point d'annuler le rendez-vous suivant :</p>
+                
+                <div class="card mb-4 bg-light">
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong><i class="bi bi-person"></i> Patient :</strong> {{ rdv.patient.nom }}
+                            </li>
+                            <li class="mb-2">
+                                <strong><i class="bi bi-calendar"></i> Date :</strong> {{ rdv.date.strftime('%d/%m/%Y') }}
+                            </li>
+                            <li class="mb-2">
+                                <strong><i class="bi bi-clock"></i> Heure :</strong> {{ rdv.heure }}
+                            </li>
+                            <li class="mb-2">
+                                <strong><i class="bi bi-person-badge"></i> Médecin :</strong> Dr. {{ rdv.doctor.nom }}
+                            </li>
+                            {% if rdv.motif %}
+                            <li class="mb-2">
+                                <strong><i class="bi bi-chat"></i> Motif :</strong> {{ rdv.motif }}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    Cette action est irréversible. Le créneau sera libéré pour d'autres patients.
+                </div>
+                
+                <form method="POST" action="{{ url_for('public.confirmer_annulation', token=token) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-check-circle"></i> Oui, annuler mon rendez-vous
+                        </button>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Non, retourner à l'accueil
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

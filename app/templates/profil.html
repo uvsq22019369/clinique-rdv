@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Mon Profil') }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-person-circle"></i> {{ _('Mon Profil') }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.modifier_profil') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label for="nom" class="form-label">{{ _('Nom complet') }}</label>
+                        <input type="text" class="form-control" id="nom" name="nom" 
+                               value="{{ user.nom }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">{{ _('Email') }}</label>
+                        <input type="email" class="form-control" id="email" 
+                               value="{{ user.email }}" readonly disabled>
+                        <small class="text-muted">{{ _('L\'email ne peut pas être modifié') }}</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telephone" class="form-label">{{ _('Téléphone') }}</label>
+                        <input type="tel" class="form-control" id="telephone" name="telephone" 
+                               value="{{ user.telephone or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="specialite" class="form-label">{{ _('Spécialité') }}</label>
+                        <input type="text" class="form-control" id="specialite" name="specialite" 
+                               value="{{ user.specialite or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Rôle') }}</label>
+                        <input type="text" class="form-control" value="{{ user.role }}" readonly disabled>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> {{ _('Mettre à jour') }}
+                    </button>
+                </form>
+
+                <hr class="my-4">
+
+                <h5>{{ _('Changer le mot de passe') }}</h5>
+                <form method="POST" action="{{ url_for('auth.changer_mot_de_passe') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label for="ancien_mot_de_passe" class="form-label">{{ _('Ancien mot de passe') }}</label>
+                        <input type="password" class="form-control" id="ancien_mot_de_passe" 
+                               name="ancien_mot_de_passe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nouveau_mot_de_passe" class="form-label">{{ _('Nouveau mot de passe') }}</label>
+                        <input type="password" class="form-control" id="nouveau_mot_de_passe" 
+                               name="nouveau_mot_de_passe" minlength="6" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmer_mot_de_passe" class="form-label">{{ _('Confirmer') }}</label>
+                        <input type="password" class="form-control" id="confirmer_mot_de_passe" 
+                               name="confirmer_mot_de_passe" minlength="6" required>
+                    </div>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-key"></i> {{ _('Changer le mot de passe') }}
+                    </button>
+                </form>
+
+                <hr class="my-4">
+
+                <h5>{{ _('Préférences de langue') }}</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="list-group">
+                            <a href="{{ url_for('auth.changer_langue', lang='fr') }}" 
+                               class="list-group-item list-group-item-action {% if session.get('language', 'fr') == 'fr' %}active{% endif %}">
+                                <i class="bi bi-flag"></i> {{ _('Français') }}
+                            </a>
+                            <a href="{{ url_for('auth.changer_langue', lang='en') }}" 
+                               class="list-group-item list-group-item-action {% if session.get('language') == 'en' %}active{% endif %}">
+                                <i class="bi bi-flag"></i> {{ _('English') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

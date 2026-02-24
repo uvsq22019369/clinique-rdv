@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0"><i class="bi bi-person-plus"></i> Inscription Médecin</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.register') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nom" class="form-label">Nom complet</label>
+                            <input type="text" class="form-control" id="nom" name="nom" 
+                                   value="{{ request.form.nom or '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="telephone" class="form-label">Téléphone</label>
+                            <input type="tel" class="form-control" id="telephone" name="telephone" 
+                                   value="{{ request.form.telephone or '' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ request.form.email or '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="specialite" class="form-label">Spécialité</label>
+                        <input type="text" class="form-control" id="specialite" name="specialite" 
+                               value="{{ request.form.specialite or '' }}" placeholder="Médecine générale, Cardiologie, etc.">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Mot de passe</label>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   minlength="6" required>
+                            <small class="text-muted">Minimum 6 caractères</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirm_password" class="form-label">Confirmer</label>
+                            <input type="password" class="form-control" id="confirm_password" 
+                                   name="confirm_password" minlength="6" required>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> S'inscrire
+                        </button>
+                    </div>
+                </form>
+                <hr>
+                <div class="text-center">
+                    <a href="{{ url_for('auth.login') }}" class="text-decoration-none">
+                        Déjà inscrit ? Se connecter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

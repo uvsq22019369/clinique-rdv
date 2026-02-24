@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Prendre Rendez-vous') }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-calendar-plus"></i> {{ _('Nouveau Rendez-vous') }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('appointments.reserver_rdv') }}" id="bookingForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label for="medecin_id" class="form-label">{{ _('Médecin') }}</label>
+                        <select class="form-select" id="medecin_id" name="medecin_id" required>
+                            <option value="">{{ _('Choisir un médecin...') }}</option>
+                            {% for medecin in medecins %}
+                                <option value="{{ medecin.id }}">Dr. {{ medecin.nom }} - {{ medecin.specialite or _('Généraliste') }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="patient_nom" class="form-label">{{ _('Nom du patient') }}</label>
+                            <input type="text" class="form-control" id="patient_nom" name="patient_nom" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="patient_tel" class="form-label">{{ _('Téléphone') }}</label>
+                            <input type="tel" class="form-control" id="patient_tel" name="patient_tel" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="patient_email" class="form-label">{{ _('Email (pour confirmation)') }}</label>
+                        <input type="email" class="form-control" id="patient_email" name="patient_email">
+                        <small class="text-muted">{{ _('Un email de confirmation sera envoyé à cette adresse.') }}</small>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">{{ _('Date') }}</label>
+                            <input type="date" class="form-control" id="date" name="date" 
+                                   min="{{ now().strftime('%Y-%m-%d') }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="heure" class="form-label">{{ _('Heure') }}</label>
+                            <select class="form-select" id="heure" name="heure" required disabled>
+                                <option value="">{{ _('Choisir d\'abord une date') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="motif" class="form-label">{{ _('Motif de la consultation (optionnel)') }}</label>
+                        <textarea class="form-control" id="motif" name="motif" rows="2" 
+                                  placeholder="{{ _('Ex: Consultation de routine, suivi, urgence...') }}"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> {{ _('Confirmer le rendez-vous') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('medecin_id').addEventListener('change', loadDisponibilites);
+document.getElementById('date').addEventListener('change', loadDisponibilites);
+
+function loadDisponibilites() {
+    const medecin_id = document.getElementById('medecin_id').value;
+    const date = document.getElementById('date').value;
+    const heureSelect = document.getElementById('heure');
+    
+    if (!medecin_id || !date) {
+        heureSelect.innerHTML = '<option value="">{{ _('Choisir médecin et date') }}</option>';
+        heureSelect.disabled = true;
+        return;
+    }
+    
+    fetch(`/rendez-vous/disponibilites/${medecin_id}/${date}`)
+        .then(response => response.json())
+        .then(data => {
+            heureSelect.innerHTML = '';
+            
+            if (data.creneaux && data.creneaux.length > 0) {
+                heureSelect.innerHTML += '<option value="">{{ _('Choisir une heure...') }}</option>';
+                data.creneaux.forEach(heure => {
+                    heureSelect.innerHTML += `<option value="${heure}">${heure}</option>`;
+                });
+                heureSelect.disabled = false;
+            } else {
+                heureSelect.innerHTML = '<option value="">{{ _('Aucun créneau disponible') }}</option>';
+                heureSelect.disabled = true;
+                alert('{{ _('Aucun créneau disponible pour cette date. Veuillez choisir une autre date.') }}');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            heureSelect.innerHTML = '<option value="">{{ _('Erreur de chargement') }}</option>';
+            heureSelect.disabled = true;
+        });
+}
+
+document.getElementById('patient_tel').addEventListener('input', function(e) {
+    let tel = e.target.value.replace(/\D/g, '');
+    if (tel.length > 9) tel = tel.slice(0, 9);
+    
+    if (tel.length >= 2) {
+        tel = tel.slice(0,2) + ' ' + tel.slice(2);
+    }
+    if (tel.length >= 6) {
+        tel = tel.slice(0,6) + ' ' + tel.slice(6);
+    }
+    if (tel.length >= 9) {
+        tel = tel.slice(0,9) + ' ' + tel.slice(9);
+    }
+    e.target.value = tel;
+});
+</script>
+{% endblock %}

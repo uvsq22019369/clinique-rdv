@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Ordonnance #{{ prescription.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-file-text"></i> Ordonnance #{{ prescription.id }}</h4>
+                <a href="{{ url_for('admin.telecharger_pdf', prescription_id=prescription.id) }}" 
+                   class="btn btn-light btn-sm">
+                    <i class="bi bi-download"></i> Télécharger PDF
+                </a>
+            </div>
+            <div class="card-body">
+                <!-- En-tête -->
+                <div class="text-center mb-4">
+                    <h3>ORDONNANCE MÉDICALE</h3>
+                    <p class="text-muted">Date: {{ prescription.date_creation.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+                
+                <!-- Médecin -->
+                <div class="mb-4">
+                    <h5>Dr. {{ prescription.doctor.nom }}</h5>
+                    <p>
+                        {{ prescription.doctor.specialite or 'Médecin généraliste' }}<br>
+                        Tél: {{ prescription.doctor.telephone }}
+                    </p>
+                </div>
+                
+                <!-- Patient -->
+                <div class="mb-4">
+                    <h5>Patient: {{ prescription.patient.nom }}</h5>
+                    <p>
+                        Tél: {{ prescription.patient.telephone }}<br>
+                        {% if prescription.patient.date_naissance %}
+                            Né(e) le: {{ prescription.patient.date_naissance.strftime('%d/%m/%Y') }}
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <!-- Médicaments -->
+                <div class="mb-4">
+                    <h5>PRESCRIPTION:</h5>
+                    <div class="border p-3 bg-light">
+                        {{ prescription.medicaments|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+                
+                <!-- Conseils -->
+                {% if prescription.conseils %}
+                <div class="mb-4">
+                    <h5>CONSEILS:</h5>
+                    <div class="border p-3 bg-light">
+                        {{ prescription.conseils|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Signature -->
+                <div class="text-end mt-5">
+                    <p>Signature du médecin:</p>
+                    <p class="mt-3"><strong>Dr. {{ prescription.doctor.nom }}</strong></p>
+                </div>
+                
+                <hr>
+                <p class="text-muted small">
+                    Document généré électroniquement - Valide sans signature manuscrite
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,154 @@
+@public_bp.route('/<clinique_slug>/prendre-rdv')
+def prendre_rdv_public(clinique_slug):
+    """Page publique de prise de rendez-vous pour une clinique"""
+    clinique = Clinique.query.filter_by(slug=clinique_slug, abonnement_actif=True).first_or_404()
+    
+    # Récupérer les médecins actifs de cette clinique
+    medecins = User.query.filter_by(
+        role='medecin',
+        actif=True,
+        clinique_id=clinique.id
+    ).all()
+    
+    return render_template('public/prendre_rdv.html', clinique=clinique, medecins=medecins)
+
+@public_bp.route('/public/disponibilites/<int:medecin_id>/<date>')
+def get_disponibilites_public(medecin_id, date):
+    """API publique pour les disponibilités"""
+    try:
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Vérifier que le médecin existe
+        medecin = User.query.get_or_404(medecin_id)
+        
+        # Récupérer les disponibilités
+        dispos = Availability.query.filter_by(
+            medecin_id=medecin_id,
+            date=date_obj
+        ).first()
+        
+        # Récupérer les rendez-vous déjà pris
+        rdv_pris = Appointment.query.filter_by(
+            medecin_id=medecin_id,
+            date=date_obj,
+            statut='confirme'
+        ).all()
+        
+        heures_pris = [r.heure for r in rdv_pris]
+        
+        creneaux = []
+        if dispos:
+            debut = datetime.strptime(dispos.heure_debut, '%H:%M')
+            fin = datetime.strptime(dispos.heure_fin, '%H:%M')
+            duree = dispos.duree_rdv or 30
+            
+            current = debut
+            while current < fin:
+                heure_str = current.strftime('%H:%M')
+                if heure_str not in heures_pris:
+                    creneaux.append(heure_str)
+                current += timedelta(minutes=duree)
+        
+        return {'creneaux': creneaux}
+    except Exception as e:
+        return {'creneaux': [], 'error': str(e)}
+
+@public_bp.route('/<clinique_slug>/reserver', methods=['POST'])
+def reserver_rdv_public(clinique_slug):
+    """Réservation publique de rendez-vous"""
+    clinique = Clinique.query.filter_by(slug=clinique_slug).first_or_404()
+    
+    medecin_id = request.form.get('medecin_id')
+    patient_nom = request.form.get('patient_nom', '').strip()
+    patient_tel = request.form.get('patient_tel', '').strip()
+    patient_email = request.form.get('patient_email', '').strip()
+    date = request.form.get('date')
+    heure = request.form.get('heure')
+    motif = request.form.get('motif', '').strip()
+    
+    if not all([medecin_id, patient_nom, patient_tel, date, heure]):
+        flash('Tous les champs sont obligatoires', 'danger')
+        return redirect(url_for('public.prendre_rdv_public', clinique_slug=clinique_slug))
+    
+    try:
+        # Créer ou récupérer le patient
+        patient = Patient.query.filter_by(telephone=patient_tel).first()
+        if not patient:
+            patient = Patient(
+                nom=patient_nom,
+                telephone=patient_tel,
+                email=patient_email if patient_email else None,
+                clinique_id=clinique.id
+            )
+            db.session.add(patient)
+            db.session.commit()
+        
+        # Vérifier disponibilité
+        rdv_existant = Appointment.query.filter_by(
+            medecin_id=medecin_id,
+            date=datetime.strptime(date, '%Y-%m-%d').date(),
+            heure=heure,
+            statut='confirme'
+        ).first()
+        
+        if rdv_existant:
+            flash('Ce créneau n\'est plus disponible', 'danger')
+            return redirect(url_for('public.prendre_rdv_public', clinique_slug=clinique_slug))
+        
+        # Créer le rendez-vous
+        rdv = Appointment(
+            patient_id=patient.id,
+            medecin_id=medecin_id,
+            clinique_id=clinique.id,
+            date=datetime.strptime(date, '%Y-%m-%d').date(),
+            heure=heure,
+            motif=motif,
+            statut='confirme'
+        )
+        
+        db.session.add(rdv)
+        db.session.commit()
+        
+        # Envoyer confirmation
+        from app.utils.email_utils import envoyer_confirmation_rdv
+        from app.utils.sms_utils import envoyer_sms_confirmation_rdv, formater_numero_senegal
+        
+        medecin = User.query.get(medecin_id)
+        date_formatee = datetime.strptime(date, '%Y-%m-%d').strftime('%d/%m/%Y')
+        
+        if patient.email:
+            envoyer_confirmation_rdv(
+                patient_nom=patient.nom,
+                patient_email=patient.email,
+                date_rdv=date_formatee,
+                heure_rdv=heure,
+                medecin_nom=medecin.nom,
+                annulation_token=rdv.annulation_token
+            )
+        
+        if patient.telephone:
+            try:
+                numero_sms = formater_numero_senegal(patient.telephone)
+                envoyer_sms_confirmation_rdv(
+                    numero=numero_sms,
+                    patient_nom=patient.nom,
+                    date_rdv=date_formatee,
+                    heure_rdv=heure,
+                    medecin_nom=medecin.nom
+                )
+            except Exception as e:
+                print(f"Erreur SMS: {e}")
+        
+        flash('Rendez-vous confirmé ! Vous allez recevoir une confirmation par SMS.', 'success')
+        return redirect(url_for('public.confirmation_page', clinique_slug=clinique_slug))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur: {str(e)}', 'danger')
+        return redirect(url_for('public.prendre_rdv_public', clinique_slug=clinique_slug))
+
+@public_bp.route('/<clinique_slug>/merci')
+def confirmation_page(clinique_slug):
+    """Page de confirmation après réservation"""
+    clinique = Clinique.query.filter_by(slug=clinique_slug).first_or_404()
+    return render_template('public/confirmation.html', clinique=clinique)

@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Statistiques') }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-graph-up"></i> 
+            {% if current_user.role == 'super_admin' %}
+                {{ _('Statistiques globales') }}
+            {% else %}
+                {{ _('Dashboard') }} {{ current_user.clinique.nom }}
+            {% endif %}
+        </h2>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('admin.export_statistiques') }}" class="btn btn-outline-primary">
+            <i class="bi bi-download"></i> {{ _('Exporter CSV') }}
+        </a>
+    </div>
+</div>
+
+<!-- Alertes abonnement pour admin_clinique -->
+{% if current_user.role == 'admin_clinique' %}
+    {% if stats.fin_abonnement %}
+        {% if stats.fin_abonnement < now() %}
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>{{ _('Abonnement expiré !') }}</strong> 
+            {{ _('Votre abonnement a expiré le') }} {{ stats.fin_abonnement.strftime('%d/%m/%Y') }}. 
+            {{ _('Contactez l\'administrateur pour le renouveler.') }}
+        </div>
+        {% elif stats.jours_restants < 30 %}
+        <div class="alert alert-warning">
+            <i class="bi bi-calendar-exclamation"></i>
+            <strong>{{ _('Abonnement bientôt expiré') }}</strong> 
+            {{ _('Plus que') }} {{ stats.jours_restants }} {{ _('jours') }} ({{ stats.fin_abonnement.strftime('%d/%m/%Y') }}).
+        </div>
+        {% endif %}
+    {% endif %}
+{% endif %}
+
+<!-- Cartes statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('Médecins') }}</h5>
+                <h2>{{ stats.medecins }}</h2>
+                <small>{{ _('Actifs') }}: {{ stats.medecins_actifs }}</small>
+            </div>
+        </div>
+    </div>
+    
+    {% if current_user.role == 'super_admin' %}
+    <div class="col-md-3">
+        <div class="card text-white bg-secondary">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('Secrétaires') }}</h5>
+                <h2>{{ stats.secretaires }}</h2>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('Patients') }}</h5>
+                <h2>{{ stats.patients }}</h2>
+                <small>{{ _('Nouveaux ce mois') }}: {{ stats.nouveaux_patients }}</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('RDV ce mois') }}</h5>
+                <h2>{{ stats.rdv_mois }}</h2>
+                <small>{{ _('Dont') }} {{ stats.rdv_annules }} {{ _('annulés') }}</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('RDV aujourd\'hui') }}</h5>
+                <h2>{{ stats.rdv_aujourdhui }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    {% if current_user.role == 'super_admin' %}
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('Abonnements expirés') }}</h5>
+                <h2>{{ stats.abonnements_expires }}</h2>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Graphiques simples -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">{{ _('Répartition des rendez-vous') }}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="rdvChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">{{ _('Activité récente') }}</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ _('Patients') }}
+                        <span class="badge bg-primary rounded-pill">{{ stats.patients }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ _('Médecins actifs') }}
+                        <span class="badge bg-success rounded-pill">{{ stats.medecins_actifs }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ _('RDV aujourd\'hui') }}
+                        <span class="badge bg-info rounded-pill">{{ stats.rdv_aujourdhui }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('rdvChart').getContext('2d');
+    const rdvChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: [
+                '{{ _("Confirmés") }}',
+                '{{ _("Terminés") }}',
+                '{{ _("Annulés") }}',
+                '{{ _("Absents") }}'
+            ],
+            datasets: [{
+                data: [
+                    {{ rdv_confirme }},
+                    {{ rdv_termine }},
+                    {{ rdv_annule }},
+                    {{ rdv_absent }}
+                ],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)'
+                ]
+            }]
+        }
+    });
+</script>
+{% endblock %}

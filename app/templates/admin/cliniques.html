@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des cliniques{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-building"></i> Gestion des cliniques</h2>
+    </div>
+    <div class="col text-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ajouterModal">
+            <i class="bi bi-plus-circle"></i> Nouvelle clinique
+        </button>
+    </div>
+</div>
+
+<!-- Liste des cliniques -->
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Toutes les cliniques</h5>
+    </div>
+    <div class="card-body">
+        {% if cliniques %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom</th>
+                            <th>Slug</th>
+                            <th>Email</th>
+                            <th>Téléphone</th>
+                            <th>Début abonnement</th>
+                            <th>Fin abonnement</th>
+                            <th>Statut</th>
+                            <th>Création</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in cliniques %}
+                        <tr>
+                            <td>{{ c.id }}</td>
+                            <td>{{ c.nom }}</td>
+                            <td>{{ c.slug }}</td>
+                            <td>{{ c.email or '-' }}</td>
+                            <td>{{ c.telephone or '-' }}</td>
+                            <td>{{ c.date_debut_abonnement.strftime('%d/%m/%Y') if c.date_debut_abonnement else '-' }}</td>
+                            <td>
+                                {% if c.date_fin_abonnement %}
+                                    {{ c.date_fin_abonnement.strftime('%d/%m/%Y') }}
+                                    {% if c.date_fin_abonnement < now() %}
+                                        <span class="badge bg-danger">Expiré</span>
+                                    {% else %}
+                                        <span class="badge bg-success">{{ (c.date_fin_abonnement - now()).days }} jours</span>
+                                    {% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if c.abonnement_actif %}
+                                    <span class="badge bg-success">Actif</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactif</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ c.date_creation.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin.renouveler_abonnement', clinique_id=c.id) }}" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Renouveler pour 1 an" onclick="return confirm('Renouveler l\'abonnement pour 1 an ?')">
+                                        <i class="bi bi-calendar-plus"></i>
+                                    </button>
+                                </form>
+                                
+                                {% if c.abonnement_actif %}
+                                    <a href="{{ url_for('admin.desactiver_clinique', clinique_id=c.id) }}" 
+                                       class="btn btn-sm btn-warning"
+                                       onclick="return confirm('Désactiver cette clinique ?')">
+                                        <i class="bi bi-pause-circle"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('admin.activer_clinique', clinique_id=c.id) }}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="bi bi-play-circle"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">Aucune clinique enregistrée.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Ajouter -->
+<div class="modal fade" id="ajouterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Nouvelle clinique</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.ajouter_clinique') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nom" class="form-label">Nom de la clinique</label>
+                        <input type="text" class="form-control" id="nom" name="nom" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="slug" class="form-label">Slug (identifiant unique)</label>
+                        <input type="text" class="form-control" id="slug" name="slug" 
+                               placeholder="ex: clinique-dakar" required>
+                        <small class="text-muted">Utilisé pour les URLs, sans espaces</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="telephone" class="form-label">Téléphone</label>
+                        <input type="tel" class="form-control" id="telephone" name="telephone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="adresse" class="form-label">Adresse</label>
+                        <textarea class="form-control" id="adresse" name="adresse" rows="2"></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        L'abonnement sera créé pour 1 an par défaut.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Créer la clinique</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

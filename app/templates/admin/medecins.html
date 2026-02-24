@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des médecins{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-person-badge"></i> Gestion des médecins</h2>
+    </div>
+    <div class="col text-end">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ajouterModal">
+            <i class="bi bi-person-plus"></i> Ajouter un médecin
+        </button>
+    </div>
+</div>
+
+<!-- Formulaire d'ajout (modal) -->
+<div class="modal fade" id="ajouterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Nouveau médecin</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.ajouter_medecin') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nom" class="form-label">Nom complet</label>
+                        <input type="text" class="form-control" id="nom" name="nom" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telephone" class="form-label">Téléphone</label>
+                        <input type="tel" class="form-control" id="telephone" name="telephone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="specialite" class="form-label">Spécialité</label>
+                        <input type="text" class="form-control" id="specialite" name="specialite">
+                    </div>
+                    
+                    <!-- Sélection de la clinique (visible seulement pour super_admin) -->
+                    {% if current_user.role == 'super_admin' %}
+                    <div class="mb-3">
+                        <label for="clinique_id" class="form-label">Clinique</label>
+                        <select class="form-select" id="clinique_id" name="clinique_id" required>
+                            <option value="">Choisir une clinique...</option>
+                            {% for clinique in cliniques %}
+                                <option value="{{ clinique.id }}">{{ clinique.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Un mot de passe temporaire sera généré automatiquement.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">Créer le médecin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des médecins -->
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="bi bi-people"></i> Liste des médecins</h5>
+    </div>
+    <div class="card-body">
+        {% if medecins %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Téléphone</th>
+                            <th>Spécialité</th>
+                            {% if current_user.role == 'super_admin' %}
+                            <th>Clinique</th>
+                            {% endif %}
+                            <th>Statut</th>
+                            <th>Inscription</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in medecins %}
+                        <tr>
+                            <td>{{ m.nom }}</td>
+                            <td>{{ m.email }}</td>
+                            <td>{{ m.telephone }}</td>
+                            <td>{{ m.specialite or '-' }}</td>
+                            
+                            {% if current_user.role == 'super_admin' %}
+                            <td>
+                                {% if m.clinique %}
+                                    {{ m.clinique.nom }}
+                                {% else %}
+                                    <span class="text-muted">Aucune</span>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                            
+                            <td>
+                                {% if m.actif %}
+                                    <span class="badge bg-success">Actif</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactif</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ m.date_inscription.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                {% if m.actif %}
+                                    <a href="{{ url_for('admin.desactiver_medecin', user_id=m.id) }}" 
+                                       class="btn btn-sm btn-warning"
+                                       onclick="return confirm('Désactiver ce médecin ?')">
+                                        <i class="bi bi-pause-circle"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('admin.activer_medecin', user_id=m.id) }}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="bi bi-play-circle"></i>
+                                    </a>
+                                {% endif %}
+                                <a href="{{ url_for('admin.reinitialiser_mot_de_passe', user_id=m.id) }}" 
+                                   class="btn btn-sm btn-info"
+                                   onclick="return confirm('Réinitialiser le mot de passe ?')">
+                                    <i class="bi bi-key"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <p class="mb-0"><i class="bi bi-exclamation-triangle"></i> Aucun médecin enregistré.</p>
+                <p class="mb-0 mt-2">Cliquez sur "Ajouter un médecin" pour commencer.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

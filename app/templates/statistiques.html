@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Statistiques{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-graph-up"></i> Statistiques globales</h2>
+
+<!-- Cartes statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Médecins</h5>
+                <h2>{{ total_medecins }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Patients</h5>
+                <h2>{{ total_patients }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Total RDV</h5>
+                <h2>{{ total_rdv }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Ordonnances</h5>
+                <h2>{{ total_ordonnances }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques détaillées -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Statut des rendez-vous</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tr>
+                        <td>Confirmés</td>
+                        <td><span class="badge bg-success">{{ rdv_confirme }}</span></td>
+                    </tr>
+                    <tr>
+                        <td>Terminés</td>
+                        <td><span class="badge bg-primary">{{ rdv_termine }}</span></td>
+                    </tr>
+                    <tr>
+                        <td>Annulés</td>
+                        <td><span class="badge bg-danger">{{ rdv_annule }}</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Activité récente</h5>
+            </div>
+            <div class="card-body">
+                <p>RDV aujourd'hui: <strong>{{ rdv_aujourdhui|length }}</strong></p>
+                <p>RDV ce mois: <strong>{{ total_rdv_mois }}</strong></p>
+                <p>Taux d'occupation: <strong>75%</strong> (estimé)</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

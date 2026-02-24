@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Créneaux{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-clock"></i> Gestion des créneaux</h2>
+    </div>
+    <div class="col text-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ajouterModal">
+            <i class="bi bi-plus-circle"></i> Ajouter des créneaux
+        </button>
+    </div>
+</div>
+
+<!-- Message de débogage temporaire -->
+<div class="alert alert-info">
+    <strong>Débogage:</strong> {{ disponibilites|length }} créneaux trouvés
+</div>
+
+<!-- Liste des créneaux -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Mes disponibilités</h5>
+            </div>
+            <div class="card-body">
+                {% if disponibilites and disponibilites|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Heure début</th>
+                                    <th>Heure fin</th>
+                                    <th>Durée RDV</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dispo in disponibilites %}
+                                <tr>
+                                    <td>{{ dispo.date.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ dispo.heure_debut }}</td>
+                                    <td>{{ dispo.heure_fin }}</td>
+                                    <td>{{ dispo.duree_rdv }} min</td>
+                                    <td>
+                                        <a href="{{ url_for('appointments.supprimer_creneaux', dispo_id=dispo.id) }}" 
+                                           class="btn btn-sm btn-danger"
+                                           onclick="return confirm('Supprimer ces créneaux ?')">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <p class="mb-0"><i class="bi bi-exclamation-triangle"></i> Aucun créneau de disponibilité défini.</p>
+                        <p class="mb-0 mt-2">Cliquez sur "Ajouter des créneaux" pour commencer.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter -->
+<div class="modal fade" id="ajouterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Ajouter des créneaux</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('appointments.ajouter_creneaux') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" 
+                               min="{{ now().strftime('%Y-%m-%d') }}" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="heure_debut" class="form-label">Heure début</label>
+                            <input type="time" class="form-control" id="heure_debut" name="heure_debut" 
+                                   value="08:00" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="heure_fin" class="form-label">Heure fin</label>
+                            <input type="time" class="form-control" id="heure_fin" name="heure_fin" 
+                                   value="18:00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="duree_rdv" class="form-label">Durée par rendez-vous (minutes)</label>
+                        <select class="form-select" id="duree_rdv" name="duree_rdv">
+                            <option value="15">15 minutes</option>
+                            <option value="30" selected>30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60">1 heure</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Ajouter la fonction now pour les templates
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page de gestion des créneaux chargée');
+});
+</script>
+{% endblock %}

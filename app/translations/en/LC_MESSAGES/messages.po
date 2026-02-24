@@ -1,0 +1,279 @@
+# English translations for Clinique RDV
+# Copyright (C) 2026
+# This file is distributed under the same license as the Clinique RDV project.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Clinique RDV 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-24 04:00+0100\n"
+"PO-Revision-Date: 2026-02-24 04:00+0100\n"
+"Last-Translator: \n"
+"Language: en\n"
+"Language-Team: English\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: app/templates/base.html:15
+msgid "Clinique RDV"
+msgstr "Clinic RDV"
+
+#: app/templates/base.html:18 app/templates/dashboard.html:10
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: app/templates/base.html:27 app/templates/patients.html:8
+#: app/templates/patients.html:24
+msgid "Patients"
+msgstr "Patients"
+
+#: app/templates/base.html:31
+msgid "Créneaux"
+msgstr "Slots"
+
+#: app/templates/base.html:36
+msgid "Nouveau RDV"
+msgstr "New Appointment"
+
+#: app/templates/base.html:42 app/templates/admin/medecins.html:5
+#: app/templates/admin/medecins.html:44
+msgid "Médecins"
+msgstr "Doctors"
+
+#: app/templates/base.html:47
+msgid "Secrétaires"
+msgstr "Secretaries"
+
+#: app/templates/base.html:53
+msgid "Cliniques"
+msgstr "Clinics"
+
+#: app/templates/base.html:57
+msgid "Utilisateurs"
+msgstr "Users"
+
+#: app/templates/base.html:62
+msgid "Stats"
+msgstr "Stats"
+
+#: app/templates/base.html:68
+msgid "Profil"
+msgstr "Profile"
+
+#: app/templates/base.html:71
+msgid "Déconnexion"
+msgstr "Logout"
+
+#: app/templates/base.html:77
+msgid "Connexion"
+msgstr "Login"
+
+#: app/templates/dashboard.html:5
+msgid "Tableau de bord"
+msgstr "Dashboard"
+
+#: app/templates/dashboard.html:16
+msgid "Nouveau RDV"
+msgstr "New Appointment"
+
+#: app/templates/dashboard.html:24
+msgid "Rendez-vous aujourd'hui"
+msgstr "Today's appointments"
+
+#: app/templates/dashboard.html:26
+msgid "confirmés"
+msgstr "confirmed"
+
+#: app/templates/dashboard.html:27
+msgid "annulés"
+msgstr "canceled"
+
+#: app/templates/dashboard.html:35
+msgid "Patients"
+msgstr "Patients"
+
+#: app/templates/dashboard.html:36
+msgid "Total patients"
+msgstr "Total patients"
+
+#: app/templates/dashboard.html:42
+msgid "RDV ce mois"
+msgstr "Appointments this month"
+
+#: app/templates/dashboard.html:43
+msgid "Consultations"
+msgstr "Consultations"
+
+#: app/templates/dashboard.html:49
+msgid "RDV annulés"
+msgstr "Canceled appointments"
+
+#: app/templates/dashboard.html:50
+msgid "Total annulations"
+msgstr "Total cancellations"
+
+#: app/templates/dashboard.html:56
+msgid "Taux d'absences"
+msgstr "No-show rate"
+
+#: app/templates/dashboard.html:57
+msgid "Patients non venus"
+msgstr "Patients who didn't show"
+
+#: app/templates/dashboard.html:65
+msgid "Rendez-vous du jour"
+msgstr "Today's appointments"
+
+#: app/templates/dashboard.html:79
+msgid "Créer ordonnance"
+msgstr "Create prescription"
+
+#: app/templates/dashboard.html:84
+msgid "Annuler"
+msgstr "Cancel"
+
+#: app/templates/dashboard.html:96
+msgid "Prochains rendez-vous"
+msgstr "Upcoming appointments"
+
+#: app/templates/login.html:5
+msgid "Connexion"
+msgstr "Login"
+
+#: app/templates/login.html:13
+msgid "Email"
+msgstr "Email"
+
+#: app/templates/login.html:17
+msgid "Mot de passe"
+msgstr "Password"
+
+#: app/templates/login.html:21
+msgid "Se souvenir de moi"
+msgstr "Remember me"
+
+#: app/templates/login.html:25
+msgid "Se connecter"
+msgstr "Sign in"
+
+#: app/templates/login.html:30
+msgid "L'inscription est réservée à l'administrateur"
+msgstr "Registration is reserved for administrators"
+
+#: app/templates/profil.html:5
+msgid "Mon Profil"
+msgstr "My Profile"
+
+#: app/templates/profil.html:14
+msgid "Nom complet"
+msgstr "Full name"
+
+#: app/templates/profil.html:19
+msgid "Email"
+msgstr "Email"
+
+#: app/templates/profil.html:23
+msgid "L'email ne peut pas être modifié"
+msgstr "Email cannot be changed"
+
+#: app/templates/profil.html:27
+msgid "Téléphone"
+msgstr "Phone"
+
+#: app/templates/profil.html:31
+msgid "Spécialité"
+msgstr "Specialty"
+
+#: app/templates/profil.html:35
+msgid "Rôle"
+msgstr "Role"
+
+#: app/templates/profil.html:39
+msgid "Mettre à jour"
+msgstr "Update"
+
+#: app/templates/profil.html:45
+msgid "Changer le mot de passe"
+msgstr "Change password"
+
+#: app/templates/profil.html:49
+msgid "Ancien mot de passe"
+msgstr "Old password"
+
+#: app/templates/profil.html:53
+msgid "Nouveau mot de passe"
+msgstr "New password"
+
+#: app/templates/profil.html:57
+msgid "Confirmer"
+msgstr "Confirm"
+
+#: app/templates/profil.html:61
+msgid "Changer le mot de passe"
+msgstr "Change password"
+
+#: app/templates/profil.html:67
+msgid "Préférences de langue"
+msgstr "Language preferences"
+
+#: app/templates/profil.html:72
+msgid "Français"
+msgstr "French"
+
+#: app/templates/profil.html:76
+msgid "English"
+msgstr "English"
+
+#: app/templates/book_appointment.html:5
+msgid "Prendre Rendez-vous"
+msgstr "Book Appointment"
+
+#: app/templates/book_appointment.html:13
+msgid "Nouveau Rendez-vous"
+msgstr "New Appointment"
+
+#: app/templates/book_appointment.html:21
+msgid "Médecin"
+msgstr "Doctor"
+
+#: app/templates/book_appointment.html:23
+msgid "Choisir un médecin..."
+msgstr "Choose a doctor..."
+
+#: app/templates/book_appointment.html:30
+msgid "Nom du patient"
+msgstr "Patient name"
+
+#: app/templates/book_appointment.html:34
+msgid "Téléphone"
+msgstr "Phone"
+
+#: app/templates/book_appointment.html:39
+msgid "Email (pour confirmation)"
+msgstr "Email (for confirmation)"
+
+#: app/templates/book_appointment.html:42
+msgid "Un email de confirmation sera envoyé à cette adresse."
+msgstr "A confirmation email will be sent to this address."
+
+#: app/templates/book_appointment.html:48
+msgid "Date"
+msgstr "Date"
+
+#: app/templates/book_appointment.html:53
+msgid "Heure"
+msgstr "Time"
+
+#: app/templates/book_appointment.html:55
+msgid "Choisir d'abord une date"
+msgstr "Choose a date first"
+
+#: app/templates/book_appointment.html:60
+msgid "Motif de la consultation (optionnel)"
+msgstr "Reason for visit (optional)"
+
+#: app/templates/book_appointment.html:66
+msgid "Confirmer le rendez-vous"
+msgstr "Confirm appointment"

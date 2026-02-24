@@ -1,0 +1,16 @@
+Flask==2.3.2
+Flask-SQLAlchemy==3.0.5
+Flask-Login==0.6.3
+Flask-Bcrypt==1.0.1
+Flask-WTF==1.2.1  # ← Version plus récente !
+WTForms==3.0.1
+email-validator==2.0.0
+python-dotenv==1.0.0
+reportlab==4.0.4
+gunicorn==21.2.0
+flask-limiter==3.9.0
+flask-mail
+flask-babel
+pandas
+requests
+# Werkzeug non spécifié (pip choisira)

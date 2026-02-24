@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Utilisateurs{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-person-badge"></i> Gestion des utilisateurs</h2>
+    </div>
+    <div class="col text-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ajouterUserModal">
+            <i class="bi bi-person-plus"></i> Nouvel utilisateur
+        </button>
+    </div>
+</div>
+
+<!-- Liste des utilisateurs -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Tous les utilisateurs</h5>
+            </div>
+            <div class="card-body">
+                {% if utilisateurs %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Téléphone</th>
+                                    <th>Rôle</th>
+                                    <th>Spécialité</th>
+                                    <th>Inscription</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in utilisateurs %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.nom }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.telephone or '-' }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'success' }}">
+                                            {{ user.role }}
+                                        </span>
+                                    </td>
+                                    <td>{{ user.specialite or '-' }}</td>
+                                    <td>{{ user.date_inscription.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        {% if user.actif %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-warning" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% if user.id != current_user.id %}
+                                        <a href="#" class="btn btn-sm btn-danger" title="Désactiver"
+                                           onclick="return confirm('Désactiver cet utilisateur ?')">
+                                            <i class="bi bi-person-x"></i>
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Aucun utilisateur.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter Utilisateur -->
+<div class="modal fade" id="ajouterUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Nouvel utilisateur</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin.ajouter_utilisateur') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nom" class="form-label">Nom complet</label>
+                        <input type="text" class="form-control" id="nom" name="nom" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telephone" class="form-label">Téléphone</label>
+                        <input type="tel" class="form-control" id="telephone" name="telephone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Rôle</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="medecin">Médecin</option>
+                            <option value="admin">Administrateur</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="specialite" class="form-label">Spécialité</label>
+                        <input type="text" class="form-control" id="specialite" name="specialite">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mot de passe temporaire</label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               value="password123" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Calendrier des rendez-vous{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-calendar-week"></i> Calendrier des rendez-vous</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('appointments.prendre_rdv') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Nouveau RDV
+        </a>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <select class="form-select" id="medecin_filter">
+            <option value="all">Tous les médecins</option>
+            {% for medecin in medecins %}
+                <option value="{{ medecin.id }}">Dr. {{ medecin.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-4">
+        <select class="form-select" id="statut_filter">
+            <option value="all">Tous les statuts</option>
+            <option value="confirme">Confirmé</option>
+            <option value="termine">Terminé</option>
+            <option value="annule">Annulé</option>
+            <option value="absent">Absent</option>
+        </select>
+    </div>
+</div>
+
+<!-- Calendrier -->
+<div id="calendar"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridWeek',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        locale: 'fr',
+        slotMinTime: '08:00:00',
+        slotMaxTime: '20:00:00',
+        allDaySlot: false,
+        height: 'auto',
+        nowIndicator: true,
+        
+        // Charger les événements (RDV + disponibilités)
+        events: function(fetchInfo, successCallback, failureCallback) {
+            const medecin_id = document.getElementById('medecin_filter').value;
+            const statut = document.getElementById('statut_filter').value;
+            
+            // Requêtes parallèles pour les RDV et les disponibilités
+            Promise.all([
+                fetch(`/api/rendez-vous?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}&medecin=${medecin_id}&statut=${statut}`).then(r => r.json()),
+                fetch(`/api/disponibilites?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}&medecin=${medecin_id}`).then(r => r.json())
+            ])
+            .then(([rdvs, dispos]) => {
+                // Transformer les RDV en événements FullCalendar
+                const rdvEvents = rdvs.map(rdv => ({
+                    id: rdv.id,
+                    title: `${rdv.patient_nom} - Dr. ${rdv.medecin_nom}`,
+                    start: `${rdv.date}T${rdv.heure}`,
+                    end: `${rdv.date}T${rdv.fin}`,
+                    backgroundColor: getCouleurStatut(rdv.statut),
+                    borderColor: getCouleurStatut(rdv.statut),
+                    textColor: '#ffffff',
+                    extendedProps: {
+                        type: 'rdv',
+                        statut: rdv.statut,
+                        patient_tel: rdv.patient_tel,
+                        motif: rdv.motif
+                    }
+                }));
+                
+                // Les disponibilités sont déjà au bon format
+                // Combiner les deux
+                successCallback([...rdvEvents, ...dispos]);
+            })
+            .catch(error => {
+                console.error('Erreur chargement données:', error);
+                failureCallback(error);
+            });
+        },
+        
+        // Action au clic sur un événement
+        eventClick: function(info) {
+            const event = info.event;
+            const props = event.extendedProps;
+            
+            if (props.type === 'rdv') {
+                // C'est un rendez-vous
+                const message = `
+                    📅 Rendez-vous
+                    Patient: ${event.title.split(' - ')[0]}
+                    Médecin: ${event.title.split(' - ')[1]}
+                    Statut: ${props.statut}
+                    Téléphone: ${props.patient_tel || 'Non renseigné'}
+                    Motif: ${props.motif || 'Non précisé'}
+                `;
+                alert(message);
+            } else {
+                // C'est une disponibilité
+                alert(`🟢 Créneau disponible\n${event.title}\n${event.start.toLocaleString()} - ${event.end.toLocaleString()}`);
+            }
+        },
+        
+        // Options d'affichage
+        editable: false,
+        selectable: true,
+        selectMirror: true,
+        dayMaxEvents: true,
+        
+        // Style des événements
+        eventDisplay: 'auto',
+        displayEventTime: true,
+        displayEventEnd: true
+    });
+    
+    calendar.render();
+    
+    // Fonction pour obtenir la couleur selon le statut
+    function getCouleurStatut(statut) {
+        switch(statut) {
+            case 'confirme': return '#28a745'; // Vert
+            case 'termine': return '#17a2b8';   // Bleu
+            case 'annule': return '#dc3545';     // Rouge
+            case 'absent': return '#ffc107';      // Jaune
+            default: return '#6c757d';            // Gris
+        }
+    }
+    
+    // Recharger le calendrier quand les filtres changent
+    document.getElementById('medecin_filter').addEventListener('change', function() {
+        calendar.refetchEvents();
+    });
+    document.getElementById('statut_filter').addEventListener('change', function() {
+        calendar.refetchEvents();
+    });
+});
+</script>
+{% endblock %}
